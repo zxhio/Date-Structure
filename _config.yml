@@ -1,13 +1,13 @@
 # Setup
-title:        Project or Site name
-tagline:      A responsive theme for your project on GitHub Pages
+title:        Autumn Wind Blog
+tagline:      从来没有一个屌丝可以逆袭
 baseurl:      ""
 paginate:     1
 
 # About/contact
 author:
-  name:       Author name
-  url:        http://yourhomepage.com 
+  name:       XianHui
+  url:        https://zxhio.github.io
 
 # Gems
 gems:
