@@ -2,7 +2,7 @@
 layout: post
 title:  "左式堆的合并"
 date:   2017-03-11 01:41:45 +0800
-categories: share
+categories: DataStructure
 ---
 
 二叉堆对于合并操作是困难的，因为需要把一个数组拷贝到另一个数组。
