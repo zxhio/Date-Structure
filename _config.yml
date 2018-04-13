@@ -1,12 +1,12 @@
 # Setup
-title:        Autumn Wind Blog
-tagline:      从来没有一个屌丝可以逆袭
+title:        zxh's blog
+tagline:      咸鱼 360° 翻身
 baseurl:      ""
-paginate:     1
+paginate:     2
 
 # About/contact
 author:
-  name:       XianHui
+  name:       zxh
   url:        https://zxhio.github.io
 
 # Gems
