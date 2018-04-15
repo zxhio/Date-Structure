@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <head>
+  <meta charset="UTF-8">
+  <title>zxh's blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <section class="page-header">
+  <h1 class="project-name">zxh's blog</h1>
+  <h2 class="project-tagline">咸鱼 360° 翻身</h2>
+  <a href="https://github.com/zxhio" class="btn">View on GitHub</a>
+  <a href="http://blog.csdn.net/zxhio" class="btn">View on CSDN</a>
+<!--  <a href="#" class="btn">Download .tar.gz</a> --!>
+</section>
+
+
+    <section class="main-content">
+      
+      <p><strong>数据的封装</strong></p>
+<ul>
+  <li><a href="#udp"> UDP 封装 </a></li>
+  <li><a href="#tcp"> TCP 封装 </a></li>
+  <li><a href="#ip"> IP 封装 </a></li>
+  <li><a href="#checksum"> 检验和算法 </a></li>
+</ul>
+
+<p>当应用程序用TCP传送数据时,数据被传送入协议栈中,然后逐一通过每一层直到被当作一串比特流送入网络</p>
+
+<p><img src="/img/data_push.jpg" alt="" /></p>
+<blockquote>
+  <p>注: <code class="highlighter-rouge">UDP</code>数据<code class="highlighter-rouge">TCP</code>数据基本一致. 唯一不同的是<code class="highlighter-rouge">UDP</code>传给<code class="highlighter-rouge">IP</code>的信息单元称作<code class="highlighter-rouge">UDP</code>数据报</p>
+</blockquote>
+
+<hr />
+<p>其中每一层对收到的数据都要增加一些首部信息(有时还要增加尾部信息)</p>
+<blockquote>
+  <p>注： 4个字节的32bit值的传输次序：首先是0-7字节，其次是8-15, 然后是16-23, 最后是24-31 bit，这种传输次序称作 <code class="highlighter-rouge">big-ending</code>（大端）字节序，或者网络字节序</p>
+</blockquote>
+
+<p><strong><a name="udp"> UDP 封装 </a></strong></p>
+<ul>
+  <li><img src="/img/udp.jpg" alt="" /></li>
+  <li>端口号表示发送进程和接受进程</li>
+  <li><code class="highlighter-rouge">UDP</code>长度字段指的是<code class="highlighter-rouge">UDP</code>首部和<code class="highlighter-rouge">UDP</code>数据的字节长度, 最小为<code class="highlighter-rouge">8</code>(发送一份<code class="highlighter-rouge">0</code>字节的<code class="highlighter-rouge">UDP数据报</code>)</li>
+  <li><code class="highlighter-rouge">UDP</code><a href="#checksum">检验和</a>覆盖<code class="highlighter-rouge">UDP</code>首部和<code class="highlighter-rouge">UDP</code>数据</li>
+</ul>
+
+<p><strong><a name="tcp"> TCP 封装 </a></strong></p>
+<ul>
+  <li><img src="/img/tcp.jpg" alt="" /></li>
+  <li>每个<code class="highlighter-rouge">TCP</code>段都有包含源端和目的端的端口号，用于寻找发端和收端应用进程,这两个端加上<code class="highlighter-rouge">IP</code>首部的源端<code class="highlighter-rouge">IP</code>地址和目的端<code class="highlighter-rouge">IP</code>地址唯一确定一个<code class="highlighter-rouge">TCP</code>连接。</li>
+  <li>序号用于标识从<code class="highlighter-rouge">TCP</code>发端向<code class="highlighter-rouge">TCP</code>收端发送的数据字节流，表示在这个报文段中的第一个数据字节。 如果将字节流看作在两个应用程序间的单向流动，则<code class="highlighter-rouge">TCP</code>用序号对每个序号进行计数。</li>
+  <li>确认序号包含发送确认的一端所期望收到的下一个序号，确认序号应当是上次成功收到的数据字节序号加一，只有<code class="highlighter-rouge">ACK</code>标志为1时，确认字段序列才有效。</li>
+  <li>首部长度给出首部中<code class="highlighter-rouge">32-bit</code>字的数目。这个值存在是由于选项字段的长度是可变的，这个字段占4bit，所以<code class="highlighter-rouge">TCP</code>最多有60字节的首部，没有选项字段，正常长度是20字节。</li>
+  <li>6 个标志位
+    <ul>
+      <li>URG ，紧急指针（urgent pointer）有效</li>
+      <li>ACK ，确认序号有效</li>
+      <li>PSH ，接收方法应该尽快将这个报文段交给应用层</li>
+      <li>RST ，重新连接</li>
+      <li>SYN ，同步序号用来发起一个连接</li>
+      <li>FIN ， 发端完成任务</li>
+    </ul>
+  </li>
+  <li>窗口大小为字节数，起始于确认序号字段指明的值，这个值是接收端正期望接收的字节，窗口大小为16 bit字段，因而窗口大小为65535个字节。</li>
+  <li>检验和覆盖了<code class="highlighter-rouge">整个TCP</code>报文段：TCP首部和TCP数据。</li>
+  <li>URG标志置1时紧急指针才有效，紧急指针是一个正的偏移量，和序号字段中的值相加表示紧急数据最后一个字节的序号，TCP的紧急方式是发送端向另一端发送紧急数据的一种方式。</li>
+  <li>最常见的可选字段是最长报文大小，又为 MSS（Maximum Segment Size）。</li>
+  <li>TCP 报文段数据部分是可选的</li>
+</ul>
+
+<p><strong><a name="ip"> IP 封装</a></strong></p>
+<ul>
+  <li><img src="/img/ip.jpg" alt="" /></li>
+  <li>协议版本号，IPv4 IPv6</li>
+  <li>首部长度指的是首部占<code class="highlighter-rouge">32-bit</code>字的数目，包括任何选项，最长60字节。</li>
+  <li>服务类型字段包括一个3-bit的优先权子字段（现已被忽略），4 bit的TOS子字段和1 bit未用但必须置0，4 bit 的TOS分别代表：最小时延，最大吞吐量，最高可靠性和最小费用，如果所有bit置0，就为一般服务。</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">应用程序</th>
+      <th style="text-align: center">最小时延</th>
+      <th style="text-align: center">最大吞吐量</th>
+      <th style="text-align: center">最高可靠性</th>
+      <th style="text-align: center">最小费用</th>
+      <th style="text-align: center">0x</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Telnet/Rlogin</td>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">0</td>
+      <td style="text-align: center">0</td>
+      <td style="text-align: center">0</td>
+      <td style="text-align: center">0x10</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">FTP (控制，数据，任意数据块)</td>
+      <td style="text-align: center">1 0 0</td>
+      <td style="text-align: center">0 1 1</td>
+      <td style="text-align: center">0 0 0</td>
+      <td style="text-align: center">0 0 0</td>
+      <td style="text-align: center">0x10 0x08 0x08</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">TFTP</td>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">0</td>
+      <td style="text-align: center">0</td>
+      <td style="text-align: center">0</td>
+      <td style="text-align: center">0x10</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">SMTP (命令阶段, 数据阶段)</td>
+      <td style="text-align: center">1 0</td>
+      <td style="text-align: center">0 1</td>
+      <td style="text-align: center">0 0</td>
+      <td style="text-align: center">0 0</td>
+      <td style="text-align: center">0x10 0x08</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">DNS (UDP查询，TCP查询，区域传输)</td>
+      <td style="text-align: center">1 0 0</td>
+      <td style="text-align: center">0 0 1</td>
+      <td style="text-align: center">0 0 0</td>
+      <td style="text-align: center">0 0 0</td>
+      <td style="text-align: center">0x10 0x00 0x08</td>
+    </tr>
+  </tbody>
+</table>
+
+<ul>
+  <li>总长度字段是整个IP数据报的长度，以字节为单位。利用首部长度字段和总长度字段就可以知道IP数据报中数据内容的起始位置和长度。总长度也是IP首部中必要的内容，以为一些数据链路需要填充数据以达到最小长度。</li>
+  <li>标识符字段唯一的标识主机发送的每一份数据，通常发一份报文它的值就加1。</li>
+  <li>TTL（time-to-live）生存时间字段设置了数据报可以经过的<code class="highlighter-rouge">最多路由器数</code>，指定了数据报的生存时间。TTL的初始值由<code class="highlighter-rouge">源主机</code>设置（通常为32或者64），一旦经过一个处理它的路由器就减1。当该字段为0时，数据报就被丢弃，并发送ICMP报文通知源主机。</li>
+  <li>首部检验和字段是根据<code class="highlighter-rouge">IP首部</code>计算的检验和码，不对首部后面的数据进行计算。ICMP、IGMP、UDP、和TCP在它们各自的首部中均含有同时覆盖首部和数据检验和码。</li>
+  <li>每一份IP数据报都含有源IP地址和目的IP地址</li>
+  <li>选项
+    <ul>
+      <li>安全和处理限制</li>
+      <li>记录路径</li>
+      <li>时间戳</li>
+      <li>宽松的源站选路</li>
+      <li>严格的源站选路
+        <blockquote>
+          <p>选项字段都是以 32-bit作为界限，在必要的时候需要对其进行0填充，保证IP首部始终是32-bit的整数倍（首部长度字段所要求）</p>
+        </blockquote>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong><a name="checksum"> 检验和算法 </a></strong></p>
+<ul>
+  <li>TCP UDP 为了验证还有增加了两个伪首部</li>
+  <li>计算检验和（发送方）
+    <ul>
+      <li>首先把检验和字段置0</li>
+      <li>对检验字段（IP只有首部，TCP/UDP等为首部和数据）中每个16-bit进行二进制反码求和</li>
+      <li>结果存于检验和字段</li>
+    </ul>
+  </li>
+  <li>计算检验和（接受方）
+    <ul>
+      <li>由于接受方在计算过程中包含了发送方存在首部的检验和，因此，如果在传输过程中没有发送任何差错，那么接受方计算的结果应该为<code class="highlighter-rouge">全1</code></li>
+    </ul>
+  </li>
+  <li>C 的简单实现
+    <pre><code class="language-C">  unsigned short check_sum(unsigned short *addr,int len)
+  {
+      unsigned long sum;
+
+      for (sum=0; len &gt; 0; len--)
+          sum += *addr++;
+
+      sum = (sum &gt;&gt; 16) + (sum &amp; 0xffff);
+      sum += (sum &gt;&gt; 16);
+
+      return ~sum;
+  }
+</code></pre>
+  </li>
+</ul>
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="http://localhost:4000">zxh's blog</a> is maintained by <a href="https://zxhio.github.io">zxh</a>.</span>
+  <!-- <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span> -->
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
